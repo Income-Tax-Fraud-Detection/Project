@@ -18,12 +18,22 @@ def predict_income(model, input_data):
     return model.predict(input_data.reshape(1, -1))[0]
 
 def classify_fraud(reported_income, predicted_income):
-    threshold_percentage = 0.1 # Adjust the threshold based on the model's performance
+    threshold_percentage = 0.1  # Adjust the threshold based on the model's performance
     percentage_difference = abs((reported_income - predicted_income) / reported_income)
     if percentage_difference > threshold_percentage:
         return "Fraud"
     else:
         return "Not Fraud"
+
+def validate_pan_card(pan_card):
+    # PAN card should be in the format AAAAA0000A
+    if not pan_card or not pan_card.isalpha() or not pan_card.isupper() or not pan_card[:5].isalpha() or not pan_card[5:9].isdigit() or not pan_card[9].isalpha():
+        raise ValueError("Invalid PAN card format. Please enter in the format AAAAA0000A")
+
+def validate_aadhar_bank(account_number):
+    # Aadhar and Bank account numbers should have exactly 12 digits
+    if not account_number or not account_number.isdigit() or len(account_number) != 12:
+        raise ValueError("Invalid number of digits. Please enter a 12-digit number.")
 
 def main():
     st.title("Fraud Detection App")
@@ -33,17 +43,51 @@ def main():
     pan_card = st.text_input("PAN Card")
     aadhar_card = st.text_input("Aadhar Card")
     bank_account_no = st.text_input("Bank Account No")
-	
+
+    # Validate PAN card format
+    try:
+        validate_pan_card(pan_card)
+    except ValueError as e:
+        st.error(str(e))
+
+    # Validate Aadhar card and Bank account numbers
+    try:
+        validate_aadhar_bank(aadhar_card)
+        validate_aadhar_bank(bank_account_no)
+    except ValueError as e:
+        st.error(str(e))
+        return
+
     age = st.slider("Age", 20, 100, 30)
     occupation = st.selectbox("Occupation", ["Salaried", "Self-employed", "Business"])
     marital_status = st.selectbox("Marital Status", ["Single", "Married"])
     children = st.selectbox("Children (Yes/No)", ["No", "Yes"])
     reported_income = st.number_input("Reported Income")
-    interest_income = np.random.uniform(1000, 100000)
-    business_income = np.random.uniform(1000, 100000)
-    capital_gains = np.random.uniform(1000, 100000)
+
+    # Additional inputs
+    if children == "Yes":
+        educational_expenses = np.random.uniform(1000, 100000)
+    else:
+        educational_expenses = 0
+
+    if occupation == "Business":
+        business_income = np.random.uniform(1000, 100000)
+    else:
+        business_income = 0
+
+    ii = st.selectbox("Do you have interest income? (Yes/No)", ["No","Yes"])
+    if ii == "Yes":
+        interest_income = np.random.uniform(1000, 100000)
+    else:
+        interest_income = 0
+
+    cg = st.selectbox("Do you have Capital Gains? (Yes/No)", ["No", "Yes"])
+    if cg == "Yes":
+        capital_gains = np.random.uniform(1000, 100000)
+    else:
+        capital_gains = 0
+
     other_income = np.random.uniform(1000, 100000)
-    educational_expenses = np.random.uniform(1000, 100000)
     healthcare_costs = np.random.uniform(1000, 100000)
     lifestyle_expenditure = np.random.uniform(1000, 100000)
     other_expenses = np.random.uniform(1000, 100000)
